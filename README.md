@@ -78,13 +78,16 @@ npm run package:win
 
 ```bash
 npm install
-npm run package:mac          # 出 arm64（Apple 芯片）+ x64（Intel），各一个 dmg 和 zip
+npm run package:mac          # 出 arm64（Apple 芯片）+ x64（Intel）的 .app 和 zip
+npm run package:mac:dmg      # 上面那步 + 封装成 dmg（推荐，一步到位）
 npm run package:mac:arm64    # 只出 Apple 芯片版，体积小一半，日常够用
 ```
 
-产物：`dist/Detail-Image-Studio-0.1.0-mac-arm64.dmg` / `-mac-x64.dmg`，以及同名的 `.zip`。双击 dmg 把 `详情图工作台.app` 拖进「应用程序」即可。
+产物：`dist/Detail-Image-Studio-0.1.0-mac-arm64.dmg` / `-mac-x64.dmg`，同名的 `.zip`，以及未压缩的 `.app`（在 `dist/mac-arm64/`、`dist/mac/`）。双击 dmg 把 `详情图工作台.app` 拖进「应用程序」即可。
 
-> 别在命令行上追加 `dmg zip`（`electron-builder --mac dmg zip`）——那样会覆盖 `package.json` 里 `mac.target` 的架构列表，只出当前机器那一种架构。
+> **为什么 dmg 不用 electron-builder 自带的 `dmg` target**：它内部依赖 `dmgbuild`（自带一份 Python），在 GitHub 的 macOS 14 runner 上会报 `plistlib.InvalidFileException` 让整个打包失败。所以 dmg 由 `scripts/make-dmg.sh` 调系统 `hdiutil` 封装，只多几行，没有这层依赖。
+>
+> 另外别在命令行上追加 `dmg zip`（`electron-builder --mac dmg zip`）——那样会覆盖 `package.json` 里 `mac.target` 的架构列表，只出当前机器那一种架构。
 
 **签名与公证（分发给别人时的关键）**
 

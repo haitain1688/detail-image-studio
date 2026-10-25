@@ -10,8 +10,10 @@
     "desktop": "electron .",
     "check": "node --check server.mjs && node --check desktop.mjs && node --check public/app.js && node --check license.mjs",
     "package:win": "electron-builder --win portable --x64 -c.electronDist=node_modules/electron/dist",
-    "package:mac": "electron-builder --mac",
-    "package:mac:arm64": "electron-builder --mac --arm64"
+    "package:mac": "electron-builder --mac --publish never",
+    "package:mac:arm64": "electron-builder --mac --arm64 --publish never",
+    "make:dmg": "bash scripts/make-dmg.sh",
+    "package:mac:dmg": "npm run package:mac && npm run make:dmg"
   },
   "devDependencies": {
     "electron": "41.7.1",
@@ -46,13 +48,6 @@
     },
     "mac": {
       "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "arm64",
-            "x64"
-          ]
-        },
         {
           "target": "zip",
           "arch": [

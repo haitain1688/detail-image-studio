@@ -71,17 +71,22 @@ jobs:
 
       - name: 打包（未签名）
         if: env.HAS_CERT != 'true'
-        run: npm run package:mac -- --publish never
+        run: npm run package:mac
 
       - name: 打包（签名 + 公证）
         if: env.HAS_CERT == 'true'
-        run: npm run package:mac -- --publish never
+        run: npm run package:mac
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      # electron-builder 自带的 dmg target（内部用 dmgbuild）在 macOS 14 runner 上会因
+      # plistlib 解析 hdiutil 输出失败而中断，所以 dmg 改用系统 hdiutil 封。
+      - name: 封装 dmg
+        run: bash scripts/make-dmg.sh
 
       - name: 未配置证书时给出放行提示
         if: env.HAS_CERT != 'true'
