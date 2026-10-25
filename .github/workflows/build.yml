@@ -86,8 +86,8 @@ jobs:
       - name: 未配置证书时给出放行提示
         if: env.HAS_CERT != 'true'
         run: |
-          echo "::notice::本次产出的 app 未签名。Apple 芯片机器上首次打开若提示「已损坏」，执行："
-          echo "::notice::xattr -cr /Applications/详情图工作台.app && codesign --force --deep --sign - /Applications/详情图工作台.app"
+          echo "::notice::本次产出的 app 是 ad-hoc 签名（electron-builder 自动完成），能启动，但没有公证。"
+          echo "::notice::别人拿到后在「系统设置 → 隐私与安全性」里点「仍要打开」即可，不需要手动 codesign。"
 
       - uses: actions/upload-artifact@v4
         with:

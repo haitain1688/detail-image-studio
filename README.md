@@ -78,20 +78,18 @@ npm run package:win
 
 ```bash
 npm install
-npm run package:mac          # 同时出 arm64（Apple 芯片）和 x64（Intel）
+npm run package:mac          # 出 arm64（Apple 芯片）+ x64（Intel），各一个 dmg 和 zip
 npm run package:mac:arm64    # 只出 Apple 芯片版，体积小一半，日常够用
 ```
 
-产物：`dist/Detail-Image-Studio-0.1.0-mac-arm64.dmg` / `-mac-x64.dmg`，以及同名的 `.zip`（自动更新用）。双击 dmg 把 `详情图工作台.app` 拖进「应用程序」即可。
+产物：`dist/Detail-Image-Studio-0.1.0-mac-arm64.dmg` / `-mac-x64.dmg`，以及同名的 `.zip`。双击 dmg 把 `详情图工作台.app` 拖进「应用程序」即可。
+
+> 别在命令行上追加 `dmg zip`（`electron-builder --mac dmg zip`）——那样会覆盖 `package.json` 里 `mac.target` 的架构列表，只出当前机器那一种架构。
 
 **签名与公证（分发给别人时的关键）**
 
-- 有 Apple 开发者账号（$99/年）：设 `CSC_LINK`（.p12 路径）和 `CSC_KEY_PASSWORD`，electron-builder 会自动签名；公证再配 `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` / `APPLE_TEAM_ID`。
-- 没有账号：包是未签名的。自己这台机器上要先做一次 ad-hoc 签名才能启动 Apple 芯片版：
-  ```bash
-  codesign --force --deep --sign - "dist/mac-arm64/详情图工作台.app"
-  ```
-  别人拿到未公证的包，首次打开会被 Gatekeeper 拦下，需要在「系统设置 → 隐私与安全性」里点「仍要打开」；macOS 15 起不能靠右键打开绕过。
+- 没有账号：electron-builder 会**自动做 ad-hoc 签名**（日志里 `falling back to ad-hoc signature`），Apple 芯片上能正常启动，只是没有公证。别人首次打开会被 Gatekeeper 拦一下，在「系统设置 → 隐私与安全性」里点「仍要打开」即可，不需要手动 `codesign`。
+- 有 Apple 开发者账号（$99/年）：设 `CSC_LINK`（.p12 路径）和 `CSC_KEY_PASSWORD`，electron-builder 自动正式签名；公证再配 `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` / `APPLE_TEAM_ID`。配好之后用户双击就能开，没有任何提示。
 
 **Mac 版与 Windows 版的差异（已处理）**
 
@@ -99,6 +97,32 @@ npm run package:mac:arm64    # 只出 Apple 芯片版，体积小一半，日常
 - 机器码：macOS 改用主板 UUID（`IOPlatformUUID`）而不是网卡 MAC。原因是 macOS 的「私有 Wi-Fi 地址」会让 MAC 随网络变化，用 MAC 当指纹会出现「换个网络就提示机器码不匹配」。Windows 的算法完全没动，已有激活码继续有效。
 - 网络层：Windows 走 PowerShell 桥接（为了兼容系统代理），macOS/Linux 走 Node 原生 `fetch`，两套分支本来就都在，Mac 上自动走后者。
 - 硬件加速：Windows 默认关闭（绕开 GPU 进程崩溃），macOS 保持开启。
+
+### 自动打包（GitHub Actions，不需要 Mac）
+
+仓库：`haitain1688/detail-image-studio`（私有）。云端流水线在 `.github/workflows/build.yml`，一台机器都不占。
+
+| 触发方式 | 结果 |
+|---|---|
+| 往 `main` 推代码 | 自动跑 Windows + macOS 两路打包，验证代码能出包 |
+| 手动 Run workflow | 同上，随时打一个包 |
+| 推 `v*` 标签（如 `git tag v0.1.1 && git push --tags`） | 额外自动创建 Release，两个平台的安装包挂在 Release 里，下载链接不过期 |
+
+拿产物：仓库 **Actions → 选一次运行 → 页面底部 Artifacts**，下载 `windows-portable` / `macos-dmg`。Artifacts 保留 30 天，Release 附件永久。
+
+配额：私有仓库每月 2000 分钟，**macOS 按 10 倍计算**（实际约 200 分钟 macOS 时间）。一次完整打包 Windows ≈ 3 分钟、macOS ≈ 5 分钟，够用二三十次。仓库转公开则不限额。
+
+要签名 + 公证，在 **Settings → Secrets and variables → Actions** 里加这 5 个，流水线会自动切到签名分支，不用改 YAML：
+
+```
+CSC_LINK                      # .p12 证书的 base64（macOS 上 `base64 -i cert.p12 | pbcopy`）
+CSC_KEY_PASSWORD              # 证书密码
+APPLE_ID                      # 苹果账号邮箱
+APPLE_APP_SPECIFIC_PASSWORD   # 专用密码，appleid.apple.com 生成
+APPLE_TEAM_ID                 # 团队 ID
+```
+
+> 踩过的坑：这 5 个 secrets 不存在时，YAML 里写成 `CSC_LINK: ${{ secrets.CSC_LINK }}` 会得到**空字符串**，electron-builder 会把空字符串当成证书路径，报 `<项目目录> not a file` 并中止打包。所以 workflow 里用 `HAS_CERT` 分流成两条打包命令，不要直接透传空值。
 
 ### 桌面版行为
 

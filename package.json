@@ -10,8 +10,8 @@
     "desktop": "electron .",
     "check": "node --check server.mjs && node --check desktop.mjs && node --check public/app.js && node --check license.mjs",
     "package:win": "electron-builder --win portable --x64 -c.electronDist=node_modules/electron/dist",
-    "package:mac": "electron-builder --mac dmg zip",
-    "package:mac:arm64": "electron-builder --mac dmg --arm64"
+    "package:mac": "electron-builder --mac",
+    "package:mac:arm64": "electron-builder --mac --arm64"
   },
   "devDependencies": {
     "electron": "41.7.1",
