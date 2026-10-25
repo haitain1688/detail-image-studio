@@ -1,9 +1,10 @@
 {
   "name": "detail-image-studio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "main": "desktop.mjs",
+  "author": "haitain1688",
   "description": "中式摆件等产品的电商详情图模块化生成工具",
   "scripts": {
     "start": "node server.mjs",
@@ -37,6 +38,7 @@
     },
     "artifactName": "Detail-Image-Studio-${version}-portable.${ext}",
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         {
           "target": "portable",
@@ -47,6 +49,7 @@
       ]
     },
     "mac": {
+      "icon": "build/icon.icns",
       "target": [
         {
           "target": "zip",

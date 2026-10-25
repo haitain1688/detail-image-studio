@@ -72,6 +72,26 @@ npm run package:win
 
 重新打包前如果 `dist/win-unpacked` 已存在，建议先手动 `rm -rf dist` 再打包，避免旧文件残留。
 
+### 应用图标
+
+图标已经生成好放在 `build/` 下，打包时 electron-builder 自动读取：
+
+| 文件 | 用途 |
+|---|---|
+| `build/icon.ico` | Windows（16/24/32/48/64/128/256 多尺寸） |
+| `build/icon.icns` | macOS（16~1024 共 10 个尺寸，内容按 HIG 缩到 82% 留边距） |
+| `build/icon.png` | 1024×1024 通用版 |
+| `build/icon-source.png` | 出图原稿，换图标时改这个 |
+
+换图标：把新的 1024 方形 PNG 覆盖掉 `build/icon-source.png`，然后
+
+```bash
+pip install pillow            # 只有这一步需要 Pillow
+python scripts/make-icons.py build/icon-source.png
+```
+
+脚本会重新生成 ico / icns / png。两个平台的规范不同（Windows 满幅、macOS 留 18% 边距），脚本里已经分开处理，不要直接拿一张 png 塞给两个平台。
+
 ### 打包 macOS 版（dmg / zip）
 
 **必须在 macOS 上执行**，Windows 上交叉编译不出 dmg。需要 Node 18+ 与 Xcode 命令行工具（`xcode-select --install`）。
