@@ -111,9 +111,13 @@ npm run package:mac:arm64    # 只出 Apple 芯片版，体积小一半，日常
 | 手动 Run workflow | 同上，随时打一个包 |
 | 推 `v*` 标签（如 `git tag v0.1.1 && git push --tags`） | 额外自动创建 Release，两个平台的安装包挂在 Release 里，下载链接不过期 |
 
-拿产物：仓库 **Actions → 选一次运行 → 页面底部 Artifacts**，下载 `windows-portable` / `macos-dmg`。Artifacts 保留 30 天，Release 附件永久。
+拿产物：仓库 **Actions → 选一次运行 → 页面底部 Artifacts**，下载 `windows-portable` / `macos-dmg`。
 
-配额：私有仓库每月 2000 分钟，**macOS 按 10 倍计算**（实际约 200 分钟 macOS 时间）。一次完整打包 Windows ≈ 3 分钟、macOS ≈ 5 分钟，够用二三十次。仓库转公开则不限额。
+配额（注意这里容易踩坑）：
+
+- **运行时间**：私有仓库每月 2000 分钟，**macOS 按 10 倍计算**（实际约 200 分钟 macOS 时间）。一次完整打包 Windows ≈ 3 分钟、macOS ≈ 8 分钟，够用二十来次。仓库转公开则不限额。
+- **存储**：私有仓库 Actions 产物总额只有 **500 MB**。一次运行 Windows exe 87 MB + 两个 dmg 250 MB，所以产物**只保留 1 天**（`retention-days: 1`），并且**不上传 zip**（和 dmg 内容重复）。长期保存的包请走 Release（推 tag），Release 附件不占这个额度。
+- 提示存储超限时，去 Actions 页面把旧的 Artifacts 删掉即可。
 
 要签名 + 公证，在 **Settings → Secrets and variables → Actions** 里加这 5 个，流水线会自动切到签名分支，不用改 YAML：
 

@@ -39,7 +39,7 @@ jobs:
           name: windows-portable
           path: dist/*.exe
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 1
 
   macos:
     name: macOS dmg
@@ -97,11 +97,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: macos-dmg
-          path: |
-            dist/*.dmg
-            dist/*.zip
+          # 只传 dmg，不传 zip：zip 是给自动更新预留的，和 dmg 内容重复，
+          # 私有仓库 Actions 存储只有 500 MB，一次传 450 MB 会几天就撑爆。
+          path: dist/*.dmg
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 1
 
   release:
     name: 发布到 Release
