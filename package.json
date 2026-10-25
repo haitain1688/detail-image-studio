@@ -1,0 +1,68 @@
+{
+  "name": "detail-image-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "desktop.mjs",
+  "description": "中式摆件等产品的电商详情图模块化生成工具",
+  "scripts": {
+    "start": "node server.mjs",
+    "desktop": "electron .",
+    "check": "node --check server.mjs && node --check desktop.mjs && node --check public/app.js && node --check license.mjs",
+    "package:win": "electron-builder --win portable --x64 -c.electronDist=node_modules/electron/dist",
+    "package:mac": "electron-builder --mac dmg zip",
+    "package:mac:arm64": "electron-builder --mac dmg --arm64"
+  },
+  "devDependencies": {
+    "electron": "41.7.1",
+    "electron-builder": "26.12.1"
+  },
+  "build": {
+    "appId": "com.amustore.detail-image-studio",
+    "productName": "详情图工作台",
+    "asar": true,
+    "compression": "maximum",
+    "files": [
+      "desktop.mjs",
+      "preload.cjs",
+      "server.mjs",
+      "license.mjs",
+      "public/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "artifactName": "Detail-Image-Studio-${version}-portable.${ext}",
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.graphics-design",
+      "artifactName": "Detail-Image-Studio-${version}-mac-${arch}.${ext}"
+    }
+  }
+}

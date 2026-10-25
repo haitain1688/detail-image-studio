@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>详情图工作台</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">詳</span>
+      <div>
+        <strong>详情图工作台</strong>
+        <span class="brand-sub">模块化生成 · 风格锁定</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <label class="project-picker">
+        <span>当前产品</span>
+        <select id="project-select"></select>
+      </label>
+      <button class="btn-ghost" id="new-project" type="button">新建产品</button>
+      <button class="btn-ghost preview-toggle" id="toggle-preview" type="button">
+        长图预览
+        <span class="preview-toggle-count" id="preview-toggle-count">0</span>
+      </button>
+      <button class="btn-ghost license-btn" id="license-btn" type="button">
+        授权
+        <span class="license-badge" id="license-badge">—</span>
+      </button>
+      <button class="btn-ghost" id="key-btn" type="button">API 设置</button>
+      <span class="save-state" id="save-state">已保存</span>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="col col-left">
+      <section class="panel" data-panel="product">
+        <div class="panel-head">
+          <h2>1 · 产品图</h2>
+          <div class="panel-head-right">
+            <span class="panel-hint">第一张为主图</span>
+            <button class="panel-toggle" type="button" aria-label="折叠面板">▾</button>
+          </div>
+        </div>
+        <div class="dropzone" id="drop-product" tabindex="0" role="button">
+          <span class="drop-title">拖入或点击上传产品图</span>
+          <span class="drop-sub">建议白底或干净背景，仅放产品本身</span>
+          <input type="file" id="product-input" accept="image/*" multiple hidden />
+        </div>
+        <div class="thumb-grid" id="product-list"></div>
+        <div class="product-lock" id="product-lock">
+          <div class="product-lock-head">
+            <strong>产品特征 · 强制注入</strong>
+            <button class="btn-link" id="product-analyze" type="button">重新提取</button>
+          </div>
+          <textarea id="product-facts" rows="5" placeholder="上传产品图后会自动提取：轮廓、配色分区、材质、标志性细节。生成时会逐字注入，确保每张图都是同一个产品。也可以手动补充更重要的一致性要点。"></textarea>
+          <span class="product-lock-hint" id="product-lock-hint"></span>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="sample">
+        <div class="panel-head">
+          <h2>2 · 风格样板</h2>
+          <div class="panel-head-right">
+            <span class="panel-hint">1–4 张</span>
+            <button class="panel-toggle" type="button" aria-label="折叠面板">▾</button>
+          </div>
+        </div>
+        <div class="dropzone dropzone-sm" id="drop-sample" tabindex="0" role="button">
+          <span class="drop-title">拖入客户现有详情图</span>
+          <span class="drop-sub">用于提取统一的色系 / 背景 / 光影 / 字体</span>
+          <input type="file" id="sample-input" accept="image/*" multiple hidden />
+        </div>
+        <div class="thumb-grid" id="sample-list"></div>
+        <button class="btn-primary btn-block" id="analyze-style" type="button">提取统一风格</button>
+      </section>
+
+      <section class="panel" data-panel="style">
+        <div class="panel-head">
+          <h2>3 · 风格锁定</h2>
+          <div class="panel-head-right">
+            <label class="switch">
+              <input type="checkbox" id="style-enabled" checked />
+              <span>启用</span>
+            </label>
+            <button class="panel-toggle" type="button" aria-label="折叠面板">▾</button>
+          </div>
+        </div>
+        <div class="style-scope">
+          <div class="scope-row">
+            <span class="scope-tag is-lock">锁定</span>
+            <span>色彩 · 光位光质 · 后期质感 · 字体性格</span>
+          </div>
+          <div class="scope-row">
+            <span class="scope-tag is-free">不锁</span>
+            <span>背景布景 · 道具 · 构图 · 机位</span>
+          </div>
+          <p class="scope-note">背景由每个模块自己的参考图决定。下面「背景 / 道具 / 构图」只作风格参考，生成时会整段剔除，不会把整页压成同一个布景。</p>
+        </div>
+        <div class="style-frame">
+          <div class="style-empty" id="style-empty">还没有风格规范。上传样板图后点「提取统一风格」，或直接在下方写死风格描述。</div>
+          <div class="style-body" id="style-body" hidden>
+            <div class="style-name" id="style-name"></div>
+            <div class="palette" id="palette"></div>
+            <dl class="style-facts" id="style-facts"></dl>
+          </div>
+          <label class="field">
+            <span>风格锁定描述（布景句会被自动剔除）</span>
+            <textarea id="lock-text" rows="4" placeholder="例如：整体暖米白宣纸背景，柔和左上方自然光，浅景深，低饱和青灰与金色点缀，画面留白充足……"></textarea>
+          </label>
+          <div class="anchor-row" id="anchor-row" hidden>
+            <img id="anchor-thumb" alt="风格锚图" />
+            <div>
+              <strong>风格锚图已锁定</strong>
+              <p>后续模块只借它的调色、光线和颗粒，不复制它的背景与道具。</p>
+              <button class="btn-link" id="clear-anchor" type="button">换一张锚图</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="col col-center">
+      <div class="center-head">
+        <div class="center-title">
+          <h1 id="project-title">未命名产品</h1>
+          <details class="center-guide">
+            <summary>使用说明</summary>
+            <p>每个模块都能上传自己的参考图，自动反推出这个模块的提示词与文案；也可以手写。风格始终按左侧锁定规范统一，先生成的第一张会成为风格锚图。</p>
+          </details>
+        </div>
+        <div class="center-actions">
+          <button class="btn-ghost" id="toggle-all" type="button">全部展开</button>
+          <button class="btn-ghost" id="batch-import" type="button">批量导入参考图</button>
+          <button class="btn-ghost" id="fill-scenes" type="button">补齐背景场景</button>
+          <button class="btn-ghost" id="analyze-module-btn" type="button">从样板图新增模块</button>
+          <button class="btn-ghost" id="add-module" type="button">新增空白模块</button>
+          <button class="btn-primary" id="gen-all" type="button">生成全部模块</button>
+        </div>
+      </div>
+
+      <div class="module-list" id="module-list"></div>
+      <div class="empty-hint" id="empty-hint" hidden>先上传产品图，然后点「生成全部模块」。</div>
+    </section>
+
+    <aside class="col col-right">
+      <section class="panel panel-preview">
+        <div class="panel-head">
+          <h2>长图预览</h2>
+          <span class="panel-hint" id="preview-count">0 张</span>
+        </div>
+        <div class="preview" id="preview">
+          <div class="preview-empty">生成的模块会按顺序拼接在这里</div>
+        </div>
+        <div class="preview-actions">
+          <button class="btn-primary btn-block" id="export-long" type="button">导出整张长图</button>
+          <button class="btn-ghost btn-block" id="export-project" type="button">导出项目 JSON</button>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <div class="drawer-scrim" id="drawer-scrim" hidden></div>
+
+  <dialog id="lightbox" class="lightbox">
+    <button class="lightbox-close" id="lightbox-close" type="button" aria-label="关闭">×</button>
+    <div class="lightbox-stage">
+      <img id="lightbox-image" alt="" />
+    </div>
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </dialog>
+
+  <dialog id="key-dialog" class="dialog">
+    <form method="dialog">
+      <h2>API 设置</h2>
+      <p class="dialog-sub">默认走 APIKEY.FAN 网关。BaseURL 保存在本机配置文件里，重启后仍在；Key 只存在服务进程内存中，重启需重填。</p>
+      <label class="field">
+        <span>BaseURL</span>
+        <input id="base-input" type="text" placeholder="https://api.apikey.fan/v1" autocomplete="off" spellcheck="false" />
+      </label>
+      <p class="field-hint">只填到版本路径这一层（如 /v1），末尾不要带 /images/edits；留空即恢复默认。</p>
+      <label class="field">
+        <span>API Key</span>
+        <input id="key-input" type="password" placeholder="sk-..." autocomplete="off" />
+      </label>
+      <p class="field-hint">留空表示沿用当前 Key。</p>
+      <p class="dialog-state" id="key-state"></p>
+      <menu>
+        <button class="btn-ghost key-test" id="key-test" value="test" type="button">测试连接</button>
+        <button class="btn-ghost" value="cancel" type="submit">取消</button>
+        <button class="btn-primary" id="key-save" value="save" type="submit">保存</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="license-dialog" class="dialog">
+    <form method="dialog">
+      <h2>软件授权</h2>
+      <p class="dialog-sub">这是一台机器的专属授权。把下面的机器码发给发码方，拿到激活码后粘贴进来即可；到期后项目和数据仍然保留，只是不能再生成新图。</p>
+      <div class="license-state-row">
+        <span class="license-chip" id="license-chip">读取中</span>
+        <span class="license-meta" id="license-meta"></span>
+      </div>
+      <div class="license-machine">
+        <span>本机机器码</span>
+        <code id="license-machine">—</code>
+        <button class="btn-link" id="copy-machine" type="button">复制</button>
+      </div>
+      <label class="field">
+        <span>激活码</span>
+        <textarea id="license-input" rows="3" placeholder="把整段激活码粘贴到这里（以 DS1. 开头）" spellcheck="false"></textarea>
+      </label>
+      <p class="field-hint">激活码与本机机器码绑定，换电脑需要重新申请。</p>
+      <p class="dialog-state" id="license-state"></p>
+      <menu>
+        <button class="btn-ghost" value="cancel" type="submit">关闭</button>
+        <button class="btn-primary" id="license-activate" value="none" type="button">激活</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="name-dialog" class="dialog">
+    <form method="dialog">
+      <h2>新建产品</h2>
+      <p class="dialog-sub">例如「青蓝瑞兽香炉」「白玉貔貅」。</p>
+      <label class="field">
+        <span>产品名称</span>
+        <input id="name-input" type="text" placeholder="输入产品名称" autocomplete="off" />
+      </label>
+      <menu>
+        <button class="btn-ghost" value="cancel" type="submit">取消</button>
+        <button class="btn-primary" value="save" type="submit">创建</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="dialog">
+    <form method="dialog">
+      <h2 id="confirm-title">确认</h2>
+      <p class="dialog-sub" id="confirm-message"></p>
+      <menu>
+        <button class="btn-ghost" id="confirm-cancel" value="cancel" type="submit">取消</button>
+        <button class="btn-primary" id="confirm-ok" value="ok" type="submit">确定</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="batch-dialog" class="dialog dialog-wide">
+    <form method="dialog">
+      <h2>批量导入参考图</h2>
+      <p class="dialog-sub" id="batch-summary">按文件名里的序号或关键词自动对位，对错了可以在下面手动改。</p>
+      <div class="batch-list" id="batch-list"></div>
+      <menu>
+        <button class="btn-ghost" value="cancel" type="submit">取消</button>
+        <button class="btn-primary" value="save" type="submit">开始分析</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <input type="file" id="module-sample-input" accept="image/*" hidden />
+  <input type="file" id="module-ref-input" accept="image/*" hidden />
+  <input type="file" id="batch-input" accept="image/*" multiple hidden />
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

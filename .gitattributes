@@ -1,0 +1,12 @@
+# 统一换行符，避免 Windows 提交、macOS 构建时出现整文件 diff 或脚本执行失败
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.icns binary
+*.dmg binary
+*.exe binary

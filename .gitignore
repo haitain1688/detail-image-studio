@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.exe
+.builder-cache/
+.dist-old-*/
+.DS_Store
+Thumbs.db
+*.log
+.test-data/
+.tmp-*/
+outputs/
+# 发码私钥只在本地，绝不能提交或打包
+tools/license-private.pem
+# 本地工具的工作日志，不进仓库
+.workbuddy/
