@@ -32,7 +32,7 @@ jobs:
         run: npm run check
 
       - name: 打包
-        run: npm run package:win
+        run: npm run package:win -- --publish never
 
       - uses: actions/upload-artifact@v4
         with:
@@ -45,6 +45,16 @@ jobs:
     name: macOS dmg
     # 必须是 macOS 机器：dmg / codesign / 公证都依赖 macOS 自带工具
     runs-on: macos-14
+    # 注意：不能把空的 CSC_LINK 直接塞进 env —— electron-builder 会把空字符串当成证书路径，
+    # 报 “<项目目录> not a file” 然后整个包打不出来。所以下面用 HAS_CERT 分流成两条打包命令。
+    # 拿到 Apple 开发者账号后，在仓库 Settings → Secrets 里填这几项，会自动切到签名+公证分支：
+    #   CSC_LINK                       .p12 证书的 base64 或下载链接
+    #   CSC_KEY_PASSWORD               证书密码
+    #   APPLE_ID                       苹果账号邮箱（公证用）
+    #   APPLE_APP_SPECIFIC_PASSWORD    专用密码（appleid.apple.com 生成）
+    #   APPLE_TEAM_ID                  团队 ID
+    env:
+      HAS_CERT: ${{ secrets.CSC_LINK != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,24 +69,22 @@ jobs:
       - name: 语法检查
         run: npm run check
 
-      - name: 打包
-        run: npm run package:mac
+      - name: 打包（未签名）
+        if: env.HAS_CERT != 'true'
+        run: npm run package:mac -- --publish never
+
+      - name: 打包（签名 + 公证）
+        if: env.HAS_CERT == 'true'
+        run: npm run package:mac -- --publish never
         env:
-          # 没有证书时这几项都是空值，electron-builder 会跳过签名，产出未公证的包。
-          # 拿到 Apple 开发者账号后，在仓库 Settings → Secrets 里填好，这里会自动签名 + 公证：
-          #   CSC_LINK                       .p12 证书的 base64 或下载链接
-          #   CSC_KEY_PASSWORD               证书密码
-          #   APPLE_ID                       苹果账号邮箱（公证用）
-          #   APPLE_APP_SPECIFIC_PASSWORD    专用密码（appleid.apple.com 生成）
-          #   APPLE_TEAM_ID                  团队 ID
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      - name: 未配置证书时做 ad-hoc 签名说明
-        if: env.CSC_LINK == ''
+      - name: 未配置证书时给出放行提示
+        if: env.HAS_CERT != 'true'
         run: |
           echo "::notice::本次产出的 app 未签名。Apple 芯片机器上首次打开若提示「已损坏」，执行："
           echo "::notice::xattr -cr /Applications/详情图工作台.app && codesign --force --deep --sign - /Applications/详情图工作台.app"
